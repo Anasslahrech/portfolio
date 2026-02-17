@@ -118,7 +118,7 @@ export default function App() {
         <div className="hero-inner">
           <div className="hero-badge">
             <span className="badge-dot" />
-            Disponible pour stage PFE & emploi
+            Disponible pour stage PFE &amp; emploi
           </div>
           <h1 className="hero-name">
             Anass <span className="hero-name-ghost">Lahrech</span>
@@ -128,7 +128,7 @@ export default function App() {
           </div>
           <p className="hero-desc">
             Étudiant-ingénieur 4ème année · Option Intelligence Artificielle · ISMAGI<br />
-            Titulaire d'une Licence en Développement Web & Mobile (2025)
+            Titulaire d&apos;une Licence en Développement Web &amp; Mobile (2025)
           </p>
           <div className="hero-btns">
             <button className="btn-main" onClick={() => goTo("Projets")}>Voir mes projets →</button>
@@ -141,6 +141,15 @@ export default function App() {
             <div><div className="stat-num">4<em>ème</em></div><div className="stat-lbl">Année Ingénieur</div></div>
           </div>
         </div>
+
+        {/* PHOTO DIPLOME */}
+        <div className="hero-photo-wrap">
+          <div className="hero-photo-ring">
+            <img src="/photo.jpg" alt="Anass Lahrech Remise diplome" className="hero-photo" />
+          </div>
+          <div className="hero-photo-badge">🎓 Lauréat ISMAGI 2025</div>
+        </div>
+
       </section>
 
       {/* ABOUT */}
@@ -266,7 +275,7 @@ export default function App() {
 
       {/* FOOTER */}
       <footer className="footer">
-        <div className="footer-l">© 2026 <strong>Anass Lahrech</strong> — Ingénieur IA & Développeur Full-Stack</div>
+        <div className="footer-l">© 2025 <strong>Anass Lahrech</strong> — Ingénieur IA & Développeur Full-Stack</div>
         <div className="footer-r">Built with <span className="gc">React</span> + <span className="gc">Vite</span> ⚡</div>
       </footer>
     </>

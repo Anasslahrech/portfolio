@@ -15,15 +15,15 @@ const SKILLS = [
 ]
 
 const PROJECTS = [
-  { icon:"📝", title:"Gestion des Examens", tech:["Java","JSP/Servlet","MySQL"], desc:"Plateforme CRUD complète pour la gestion des étudiants, questions et examens universitaires." },
-  { icon:"💪", title:"App Fitness & Nutrition", tech:["Android Java","SQLite","XML"], desc:"App mobile Android avec calcul de calories et programmes personnalisés selon l'objectif de chaque utilisateur." },
-  { icon:"🏛️", title:"Réservation Salles & Amphi", tech:["Java","REST API","SOAP","RMI","MySQL"], desc:"Système de réservation multi-protocoles pour amphithéâtres et salles." },
-  { icon:"🛒", title:"E-commerce Sportif", tech:["Django","Python","MySQL","Bootstrap"], desc:"Plateforme e-commerce complète pour produits sportifs avec gestion du catalogue et des commandes." },
-  { icon:"💼", title:"Site d'Offres d'Emploi", tech:["Laravel","PHP","MySQL","Bootstrap"], desc:"Portail emploi avec espaces distincts Candidat / Recruteur, candidatures et gestion des offres." },
-  { icon:"🗺️", title:"Suivi Livraisons Temps Réel", tech:["Node.js","Express","MongoDB","Socket.IO","Google Maps"], desc:"Système de tracking temps réel avec carte interactive et mise à jour de position." },
-  { icon:"📋", title:"Gestionnaire de Contacts", tech:["Vue.js","Vue Router","Bootstrap","json-server"], desc:"Application CRUD de gestion de contacts avec navigation fluide et API simulée." },
-  { icon:"📣", title:"Site Vitrine Marketing Digital", tech:["React.js","CSS3","Bootstrap"], desc:"Site vitrine professionnel pour agence de marketing digital, responsive et moderne." },
-  { icon:"🖥️", title:"Gestion Matériel IT", tech:["Laravel","PHP","MySQL","Bootstrap"], desc:"Système de gestion du parc informatique d'Asment Temara — suivi et affectation des équipements IT." },
+  { icon:"📝", title:"Gestion des Examens", tech:["Java","JSP/Servlet","MySQL"], desc:"Plateforme CRUD complète pour la gestion des étudiants, questions et examens universitaires.", video:"" },
+  { icon:"💪", title:"App Fitness & Nutrition", tech:["Android Java","SQLite","XML"], desc:"App mobile Android avec calcul de calories et programmes personnalisés selon l'objectif de chaque utilisateur.", video:"/videos/FITTRACK.mp4" },
+  { icon:"🏛️", title:"Réservation Salles & Amphi", tech:["Java","REST API","SOAP","RMI","MySQL"], desc:"Système de réservation multi-protocoles pour amphithéâtres et salles.", video:"" },
+  { icon:"🛒", title:"E-commerce Sportif", tech:["Django","Python","MySQL","Bootstrap"], desc:"Plateforme e-commerce complète pour produits sportifs avec gestion du catalogue et des commandes.", video:"" },
+  { icon:"💼", title:"Site d'Offres d'Emploi", tech:["Laravel","PHP","MySQL","Bootstrap"], desc:"Portail emploi avec espaces distincts Candidat / Recruteur, candidatures et gestion des offres.", video:"" },
+  { icon:"🗺️", title:"Suivi Livraisons Temps Réel", tech:["Node.js","Express","MongoDB","Socket.IO","Google Maps"], desc:"Système de tracking temps réel avec carte interactive et mise à jour de position.", video:"" },
+  { icon:"📋", title:"Gestionnaire de Contacts", tech:["Vue.js","Vue Router","Bootstrap","json-server"], desc:"Application CRUD de gestion de contacts avec navigation fluide et API simulée.", video:"" },
+  { icon:"📣", title:"Site Vitrine Marketing Digital", tech:["React.js","CSS3","Bootstrap"], desc:"Site vitrine professionnel pour agence de marketing digital, responsive et moderne.", video:"/videos/MarketingDigital.mp4" },
+  { icon:"🖥️", title:"Gestion Matériel IT", tech:["Laravel","PHP","MySQL","Bootstrap"], desc:"Système de gestion du parc informatique d'Asment Temara — suivi et affectation des équipements IT.", video:"" },
 ]
 
 const STAGES = [
@@ -52,12 +52,92 @@ function useScrollAnim() {
   }, [])
 }
 
+// ── VIDEO MODAL ─────────────────────────────────
+function VideoModal({ project, onClose }) {
+  if (!project) return null
+
+  // Convert YouTube URL to embed
+  const getEmbedUrl = (url) => {
+    if (!url) return null
+    if (url.includes('youtube.com/watch')) {
+      const id = url.split('v=')[1]?.split('&')[0]
+      return `https://www.youtube.com/embed/${id}?autoplay=1`
+    }
+    if (url.includes('youtu.be/')) {
+      const id = url.split('youtu.be/')[1]?.split('?')[0]
+      return `https://www.youtube.com/embed/${id}?autoplay=1`
+    }
+    if (url.includes('drive.google.com')) {
+      const id = url.match(/[-\w]{25,}/)?.[0]
+      return `https://drive.google.com/file/d/${id}/preview`
+    }
+    return url
+  }
+
+  const embedUrl = getEmbedUrl(project.video)
+  const isLocal = project.video && (project.video.endsWith('.mp4') || project.video.endsWith('.webm') || project.video.endsWith('.mov'))
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div className="modal-title-wrap">
+            <span className="modal-icon">{project.icon}</span>
+            <div>
+              <div className="modal-title">{project.title}</div>
+              <div className="modal-sub">Démonstration du projet</div>
+            </div>
+          </div>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="modal-video-wrap">
+          {isLocal ? (
+            <video
+              src={project.video}
+              className="modal-video"
+              controls
+              autoPlay
+              playsInline
+            />
+          ) : embedUrl ? (
+            <iframe
+              src={embedUrl}
+              title={project.title}
+              className="modal-iframe"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          ) : (
+            <div className="modal-no-video">
+              <div className="modal-no-video-icon">🎬</div>
+              <div className="modal-no-video-title">Vidéo bientôt disponible</div>
+              <div className="modal-no-video-sub">
+                La démonstration de <strong>{project.title}</strong> sera ajoutée prochainement.
+              </div>
+              <div className="modal-no-video-tip">
+                Pour ajouter une vidéo, mettez le lien YouTube ou Google Drive dans le champ <code>video</code> du projet.
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="modal-footer">
+          <div className="modal-techs">
+            {project.tech.map(t => <span key={t} className="modal-tech">{t}</span>)}
+          </div>
+          <button className="modal-close-btn" onClick={onClose}>Fermer</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   const [active, setActive]   = useState("Accueil")
   const [menuOpen, setMenuOpen] = useState(false)
   const [typed, setTyped]     = useState("")
   const [tidx, setTidx]       = useState(0)
   const [visible, setVisible] = useState({})
+  const [activeVideo, setActiveVideo] = useState(null)
   const tiRef = useRef(null)
 
   // Typing
@@ -116,7 +196,7 @@ export default function App() {
               onClick={() => { goTo(n); setActive(n) }}>{n}</button>
           ))}
         </div>
-        <a className="nav-cv-btn" href="/LahrechAnassCV.pdf" download="CV_Anass_Lahrech.pdf">📄 CV</a>
+        <a className="nav-cv-btn" href="#" onClick={(e) => { e.preventDefault(); downloadCV(); }}>📄 CV</a>
         <button className="nav-cta" onClick={() => goTo("Contact")}>Contactez-moi</button>
         <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
           {menuOpen?"✕":"☰"}
@@ -156,7 +236,7 @@ export default function App() {
           <div className="hero-btns anim-up delay-4">
             <button className="btn-main" onClick={() => goTo("Projets")}>Voir mes projets →</button>
             <button className="btn-outline" onClick={() => goTo("Contact")}>Me contacter</button>
-            <a className="btn-cv" href="/LahrechAnassCV.pdf" download="CV_Anass_Lahrech.pdf">📄 Télécharger CV</a>
+            <a className="btn-cv" href="#" onClick={(e) => { e.preventDefault(); downloadCV(); }}>📄 Télécharger CV</a>
           </div>
           {/* stats depuis le bas */}
           <div className="hero-stats anim-up delay-5">
@@ -242,7 +322,6 @@ export default function App() {
         </div>
         <div className="projects-grid">
           {PROJECTS.map((p,i) => (
-            // flip pour les premiers, puis alternance gauche/droite
             <div key={p.title}
               className={`pcard ${i<3?"anim-flip":i%2===0?"anim-left":"anim-right"} delay-${(i%5)+1}`}>
               <div className="pcard-num">Projet {String(i+1).padStart(2,"0")}</div>
@@ -250,6 +329,9 @@ export default function App() {
               <div className="pcard-title">{p.title}</div>
               <div className="pcard-desc">{p.desc}</div>
               <div className="pcard-techs">{p.tech.map(t => <span key={t} className="pcard-tech">{t}</span>)}</div>
+              <button className="pcard-demo-btn" onClick={() => setActiveVideo(p)}>
+                <span className="pcard-demo-icon">▶</span> Voir la démo
+              </button>
             </div>
           ))}
         </div>
@@ -322,10 +404,13 @@ export default function App() {
               <div className="cv-card-sub">Lahrech Anass — Ingénieur IA &amp; Développeur Full-Stack · PDF</div>
             </div>
           </div>
-          <a className="cv-dl-btn" href="/LahrechAnassCV.pdf" download="CV_Anass_Lahrech.pdf">⬇ Télécharger le CV</a>
+          <a className="cv-dl-btn" href="#" onClick={(e) => { e.preventDefault(); downloadCV(); }}>⬇ Télécharger le CV</a>
         </div>
 
       </section>
+
+      {/* VIDEO MODAL */}
+      <VideoModal project={activeVideo} onClose={() => setActiveVideo(null)} />
 
       {/* FOOTER */}
       <footer className="footer">

@@ -17,10 +17,10 @@ const SKILLS = [
 const PROJECTS = [
   { icon:"📝", title:"Gestion des Examens", tech:["Java","JSP/Servlet","MySQL"], desc:"Plateforme CRUD complète pour la gestion des étudiants, questions et examens universitaires." },
   { icon:"💪", title:"App Fitness & Nutrition", tech:["Android Java","SQLite","XML"], desc:"App mobile Android avec calcul de calories et programmes personnalisés selon l'objectif de chaque utilisateur." },
-  { icon:"🏛️", title:"Réservation Salles & Amphi", tech:["Java","REST API","SOAP","RMI","MySQL"], desc:"Système de réservation multi-protocoles pour amphithéâtres et salles — REST, SOAP et RMI." },
+  { icon:"🏛️", title:"Réservation Salles & Amphi", tech:["Java","REST API","SOAP","RMI","MySQL"], desc:"Système de réservation multi-protocoles pour amphithéâtres et salles." },
   { icon:"🛒", title:"E-commerce Sportif", tech:["Django","Python","MySQL","Bootstrap"], desc:"Plateforme e-commerce complète pour produits sportifs avec gestion du catalogue et des commandes." },
   { icon:"💼", title:"Site d'Offres d'Emploi", tech:["Laravel","PHP","MySQL","Bootstrap"], desc:"Portail emploi avec espaces distincts Candidat / Recruteur, candidatures et gestion des offres." },
-  { icon:"🗺️", title:"Suivi Livraisons Temps Réel", tech:["Node.js","Express","MongoDB","Socket.IO","Google Maps"], desc:"Système de tracking temps réel avec carte interactive, mise à jour de position et interface dynamique." },
+  { icon:"🗺️", title:"Suivi Livraisons Temps Réel", tech:["Node.js","Express","MongoDB","Socket.IO","Google Maps"], desc:"Système de tracking temps réel avec carte interactive et mise à jour de position." },
   { icon:"📋", title:"Gestionnaire de Contacts", tech:["Vue.js","Vue Router","Bootstrap","json-server"], desc:"Application CRUD de gestion de contacts avec navigation fluide et API simulée." },
   { icon:"📣", title:"Site Vitrine Marketing Digital", tech:["React.js","CSS3","Bootstrap"], desc:"Site vitrine professionnel pour agence de marketing digital, responsive et moderne." },
   { icon:"🖥️", title:"Gestion Matériel IT", tech:["Laravel","PHP","MySQL","Bootstrap"], desc:"Système de gestion du parc informatique d'Asment Temara — suivi et affectation des équipements IT." },
@@ -33,15 +33,34 @@ const STAGES = [
 
 function goTo(id) { document.getElementById(id)?.scrollIntoView({ behavior:"smooth" }) }
 
+// Hook animation au scroll
+function useScrollAnim() {
+  useEffect(() => {
+    const els = document.querySelectorAll(
+      ".anim-left, .anim-right, .anim-up, .anim-down, .anim-zoom, .anim-flip"
+    )
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add("animated")
+          obs.unobserve(e.target)
+        }
+      })
+    }, { threshold: 0.12 })
+    els.forEach(el => obs.observe(el))
+    return () => obs.disconnect()
+  }, [])
+}
+
 export default function App() {
-  const [active, setActive] = useState("Accueil")
+  const [active, setActive]   = useState("Accueil")
   const [menuOpen, setMenuOpen] = useState(false)
-  const [typed, setTyped] = useState("")
-  const [tidx, setTidx] = useState(0)
+  const [typed, setTyped]     = useState("")
+  const [tidx, setTidx]       = useState(0)
   const [visible, setVisible] = useState({})
   const tiRef = useRef(null)
 
-  // typing
+  // Typing
   useEffect(() => {
     let i = 0; const cur = TITLES[tidx]
     clearInterval(tiRef.current)
@@ -53,7 +72,7 @@ export default function App() {
           let d = cur.length
           tiRef.current = setInterval(() => {
             d--; setTyped(cur.slice(0,d))
-            if(d <= 0) { clearInterval(tiRef.current); setTidx(p => (p+1) % TITLES.length) }
+            if(d <= 0) { clearInterval(tiRef.current); setTidx(p => (p+1)%TITLES.length) }
           }, 40)
         }, 2000)
       }
@@ -61,7 +80,7 @@ export default function App() {
     return () => clearInterval(tiRef.current)
   }, [tidx])
 
-  // intersection observer
+  // Section visible (pour .section)
   useEffect(() => {
     const obs = new IntersectionObserver(entries => {
       entries.forEach(e => { if(e.isIntersecting) setVisible(v => ({...v,[e.target.id]:true})) })
@@ -70,15 +89,18 @@ export default function App() {
     return () => obs.disconnect()
   }, [])
 
-  // active on scroll
+  // Active nav
   useEffect(() => {
     const fn = () => NAV.forEach(id => {
       const el = document.getElementById(id)
-      if(el) { const r = el.getBoundingClientRect(); if(r.top <= 80 && r.bottom >= 80) setActive(id) }
+      if(el){ const r=el.getBoundingClientRect(); if(r.top<=80&&r.bottom>=80) setActive(id) }
     })
     window.addEventListener("scroll", fn)
     return () => window.removeEventListener("scroll", fn)
   }, [])
+
+  // Scroll animations
+  useScrollAnim()
 
   return (
     <>
@@ -91,50 +113,53 @@ export default function App() {
         <div className="nav-links">
           {NAV.map(n => (
             <button key={n} className={`nav-btn${active===n?" active":""}`}
-              onClick={() => { goTo(n); setActive(n); }}>
-              {n}
-            </button>
+              onClick={() => { goTo(n); setActive(n) }}>{n}</button>
           ))}
         </div>
+        <a className="nav-cv-btn" href="/LahrechAnassCV.pdf" download="CV_Anass_Lahrech.pdf">📄 CV</a>
         <button className="nav-cta" onClick={() => goTo("Contact")}>Contactez-moi</button>
         <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
-          {menuOpen ? "✕" : "☰"}
+          {menuOpen?"✕":"☰"}
         </button>
       </nav>
 
-      {/* MOBILE MENU */}
       <div className={`mobile-menu${menuOpen?" open":""}`}>
         {NAV.map(n => (
           <button key={n} className={`nav-btn${active===n?" active":""}`}
-            onClick={() => { goTo(n); setActive(n); setMenuOpen(false); }}>
-            {n}
-          </button>
+            onClick={() => { goTo(n); setActive(n); setMenuOpen(false) }}>{n}</button>
         ))}
       </div>
 
-      {/* HERO */}
+      {/* ── HERO ─────────────────────────────────── */}
       <section id="Accueil" className="hero">
-        <div className="hero-glow1" /><div className="hero-glow2" /><div className="hero-dots" />
+        <div className="hero-glow1"/><div className="hero-glow2"/><div className="hero-dots"/>
         <div className="hero-inner">
-          <div className="hero-badge">
-            <span className="badge-dot" />
+          {/* badge glisse depuis le haut */}
+          <div className="hero-badge anim-down">
+            <span className="badge-dot"/>
             Disponible pour stage PFE &amp; emploi
           </div>
-          <h1 className="hero-name">
+          {/* nom glisse depuis la gauche */}
+          <h1 className="hero-name anim-left">
             Anass <span className="hero-name-ghost">Lahrech</span>
           </h1>
-          <div className="hero-typing">
-            {typed}<span className="cursor-bar" />
+          {/* typing glisse depuis la gauche avec délai */}
+          <div className="hero-typing anim-left delay-2">
+            {typed}<span className="cursor-bar"/>
           </div>
-          <p className="hero-desc">
-            Étudiant-ingénieur 4ème année · Option Intelligence Artificielle · ISMAGI<br />
+          {/* desc zoom */}
+          <p className="hero-desc anim-zoom delay-3">
+            Étudiant-ingénieur 4ème année · Option Intelligence Artificielle · ISMAGI<br/>
             Titulaire d&apos;une Licence en Développement Web &amp; Mobile (2025)
           </p>
-          <div className="hero-btns">
+          {/* boutons depuis le bas */}
+          <div className="hero-btns anim-up delay-4">
             <button className="btn-main" onClick={() => goTo("Projets")}>Voir mes projets →</button>
             <button className="btn-outline" onClick={() => goTo("Contact")}>Me contacter</button>
+            <a className="btn-cv" href="/LahrechAnassCV.pdf" download="CV_Anass_Lahrech.pdf">📄 Télécharger CV</a>
           </div>
-          <div className="hero-stats">
+          {/* stats depuis le bas */}
+          <div className="hero-stats anim-up delay-5">
             <div><div className="stat-num">9<em>+</em></div><div className="stat-lbl">Projets réalisés</div></div>
             <div><div className="stat-num">2</div><div className="stat-lbl">Stages effectués</div></div>
             <div><div className="stat-num">15<em>+</em></div><div className="stat-lbl">Technologies</div></div>
@@ -142,28 +167,29 @@ export default function App() {
           </div>
         </div>
 
-        {/* PHOTO DIPLOME */}
-        <div className="hero-photo-wrap">
+        {/* photo glisse depuis la droite */}
+        <div className="hero-photo-wrap anim-right">
           <div className="hero-photo-ring">
-            <img src="/photo.jpg" alt="Anass Lahrech Remise diplome" className="hero-photo" />
+            <img src="/photo.jpg" alt="Anass Lahrech diplome" className="hero-photo"/>
           </div>
           <div className="hero-photo-badge">🎓 Lauréat ISMAGI 2025</div>
         </div>
-
       </section>
 
-      {/* ABOUT */}
+      {/* ── ABOUT ────────────────────────────────── */}
       <section id="À propos" className={`section${visible["À propos"]?" visible":""}`}>
-        <div className="s-header">
+        {/* header glisse depuis la gauche */}
+        <div className="s-header anim-left">
           <div className="s-eyebrow">01 — À propos</div>
           <h2 className="s-title">Qui suis-je ?</h2>
-          <p className="s-sub">Ingénieur passionné par l'IA et le développement logiciel.</p>
+          <p className="s-sub">Ingénieur passionné par l&apos;IA et le développement logiciel.</p>
         </div>
         <div className="about-grid">
-          <div>
-            <p className="about-p">Je suis étudiant-ingénieur en <strong>4ème année Génie Informatique</strong>, option <em>Intelligence Artificielle</em> à l'<strong>ISMAGI</strong>. Titulaire d'une <strong>Licence en Développement Web et Mobile</strong> obtenue en 2025.</p>
-            <p className="about-p">J'ai développé une expérience solide à travers <em>9 projets</em> couvrant le développement full-stack, mobile, les APIs, la data science et l'IA — ainsi que <em>2 stages</em> en entreprise dont un stage PFE chez <strong>Asment Temara</strong>.</p>
-            <p className="about-p">Rigoureux, autonome et passionné d'innovation, je cherche à mettre mes compétences au service de challenges techniques à fort impact.</p>
+          {/* texte depuis la gauche */}
+          <div className="anim-left delay-1">
+            <p className="about-p">Je suis étudiant-ingénieur en <strong>4ème année Génie Informatique</strong>, option <em>Intelligence Artificielle</em> à l&apos;<strong>ISMAGI</strong>. Titulaire d&apos;une <strong>Licence en Développement Web et Mobile</strong> obtenue en 2025.</p>
+            <p className="about-p">J&apos;ai développé une expérience solide à travers <em>9 projets</em> couvrant le développement full-stack, mobile, les APIs, la data science et l&apos;IA — ainsi que <em>2 stages</em> en entreprise dont un stage PFE chez <strong>Asment Temara</strong>.</p>
+            <p className="about-p">Rigoureux, autonome et passionné d&apos;innovation, je cherche à mettre mes compétences au service de challenges techniques à fort impact.</p>
             <div className="lang-section">
               <div className="lang-title">Langues</div>
               <div className="lang-pills">
@@ -173,24 +199,31 @@ export default function App() {
               </div>
             </div>
           </div>
-          <div className="about-stats">
-            {[["9+","Projets réalisés"],["2","Stages effectués"],["15+","Technologies"],["4ème","Année Cycle Ingénieur"]].map(([n,l]) => (
-              <div key={l} className="scard"><div className="scard-n">{n}</div><div className="scard-l">{l}</div></div>
+          {/* stats depuis la droite */}
+          <div className="about-stats anim-right delay-2">
+            {[["9+","Projets réalisés"],["2","Stages effectués"],["15+","Technologies"],["4ème","Année Cycle Ingénieur"]].map(([n,l],i) => (
+              <div key={l} className={`scard anim-zoom delay-${i+2}`}>
+                <div className="scard-n">{n}</div>
+                <div className="scard-l">{l}</div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* SKILLS */}
+      {/* ── SKILLS ───────────────────────────────── */}
       <section id="Compétences" className={`section alt-bg${visible["Compétences"]?" visible":""}`}>
-        <div className="s-header">
+        {/* header depuis la droite */}
+        <div className="s-header anim-right">
           <div className="s-eyebrow">02 — Compétences</div>
           <h2 className="s-title">Stack technique</h2>
           <p className="s-sub">Technologies maîtrisées à travers projets et stages.</p>
         </div>
         <div className="skills-grid">
-          {SKILLS.map(sk => (
-            <div key={sk.cat} className="skill-card">
+          {SKILLS.map((sk, i) => (
+            // alternance gauche / droite / zoom selon l'index
+            <div key={sk.cat}
+              className={`skill-card ${i%3===0?"anim-left":i%3===1?"anim-up":"anim-right"} delay-${(i%4)+1}`}>
               <div className="sk-icon">{sk.icon}</div>
               <div className="sk-name">{sk.cat}</div>
               <div className="sk-tags">{sk.items.map(t => <span key={t} className="sk-tag">{t}</span>)}</div>
@@ -199,16 +232,19 @@ export default function App() {
         </div>
       </section>
 
-      {/* PROJECTS */}
+      {/* ── PROJECTS ─────────────────────────────── */}
       <section id="Projets" className={`section${visible["Projets"]?" visible":""}`}>
-        <div className="s-header">
+        {/* header depuis la gauche */}
+        <div className="s-header anim-left">
           <div className="s-eyebrow">03 — Projets</div>
-          <h2 className="s-title">Ce que j'ai construit</h2>
-          <p className="s-sub">J'ai réalisé plusieurs projets tout au long de ma formation — voici quelques-uns qui illustrent mes compétences en web, mobile, IA et data science.</p>
+          <h2 className="s-title">Ce que j&apos;ai construit</h2>
+          <p className="s-sub">J&apos;ai réalisé plusieurs projets tout au long de ma formation — voici quelques-uns qui illustrent mes compétences en web, mobile, IA et data science.</p>
         </div>
         <div className="projects-grid">
           {PROJECTS.map((p,i) => (
-            <div key={p.title} className="pcard">
+            // flip pour les premiers, puis alternance gauche/droite
+            <div key={p.title}
+              className={`pcard ${i<3?"anim-flip":i%2===0?"anim-left":"anim-right"} delay-${(i%5)+1}`}>
               <div className="pcard-num">Projet {String(i+1).padStart(2,"0")}</div>
               <div className="pcard-ico">{p.icon}</div>
               <div className="pcard-title">{p.title}</div>
@@ -219,17 +255,19 @@ export default function App() {
         </div>
       </section>
 
-      {/* STAGES */}
+      {/* ── STAGES ───────────────────────────────── */}
       <section id="Stages" className={`section alt-bg${visible["Stages"]?" visible":""}`}>
-        <div className="s-header">
+        {/* header depuis la droite */}
+        <div className="s-header anim-right">
           <div className="s-eyebrow">04 — Expériences</div>
           <h2 className="s-title">Stages professionnels</h2>
           <p className="s-sub">Expériences en entreprise qui ont façonné mes compétences terrain.</p>
         </div>
         <div className="timeline">
-          {STAGES.map(st => (
-            <div key={st.company} className="tl-item">
-              <div className="tl-dot" />
+          {STAGES.map((st,i) => (
+            // alternance gauche / droite
+            <div key={st.company} className={`tl-item ${i%2===0?"anim-left":"anim-right"} delay-${i+1}`}>
+              <div className="tl-dot"/>
               <div className="stg-card">
                 <div className="stg-top">
                   <div>
@@ -249,9 +287,10 @@ export default function App() {
         </div>
       </section>
 
-      {/* CONTACT */}
+      {/* ── CONTACT ──────────────────────────────── */}
       <section id="Contact" className={`section${visible["Contact"]?" visible":""}`}>
-        <div className="s-header">
+        {/* header zoom */}
+        <div className="s-header anim-zoom">
           <div className="s-eyebrow">05 — Contact</div>
           <h2 className="s-title">Travaillons ensemble</h2>
           <p className="s-sub">Disponible pour un stage PFE, une alternance ou un poste junior en IA / Full-Stack.</p>
@@ -262,8 +301,10 @@ export default function App() {
             {ico:"📞",lbl:"Téléphone",val:"06 02 74 77 60",href:"tel:0602747760"},
             {ico:"💼",lbl:"LinkedIn",val:"anass-lahrech",href:"https://www.linkedin.com/in/anass-lahrech-ab873b271/"},
             {ico:"🐙",lbl:"GitHub",val:"Anasslahrech",href:"https://github.com/Anasslahrech"},
-          ].map(c => (
-            <a key={c.lbl} href={c.href} target="_blank" rel="noreferrer" className="ccard">
+          ].map((c,i) => (
+            // chaque carte contact depuis une direction différente
+            <a key={c.lbl} href={c.href} target="_blank" rel="noreferrer"
+              className={`ccard ${["anim-left","anim-up","anim-up","anim-right"][i]} delay-${i+1}`}>
               <span className="ccard-ico">{c.ico}</span>
               <span className="ccard-lbl">{c.lbl}</span>
               <span className="ccard-val">{c.val}</span>
@@ -271,11 +312,24 @@ export default function App() {
             </a>
           ))}
         </div>
+
+        {/* CV DOWNLOAD */}
+        <div className="cv-download-card anim-up delay-5">
+          <div className="cv-card-left">
+            <div className="cv-card-icon">📄</div>
+            <div>
+              <div className="cv-card-title">Mon CV complet</div>
+              <div className="cv-card-sub">Lahrech Anass — Ingénieur IA &amp; Développeur Full-Stack · PDF</div>
+            </div>
+          </div>
+          <a className="cv-dl-btn" href="/LahrechAnassCV.pdf" download="CV_Anass_Lahrech.pdf">⬇ Télécharger le CV</a>
+        </div>
+
       </section>
 
       {/* FOOTER */}
       <footer className="footer">
-        <div className="footer-l">© 2025 <strong>Anass Lahrech</strong> — Ingénieur IA & Développeur Full-Stack</div>
+        <div className="footer-l">© 2025 <strong>Anass Lahrech</strong> — Ingénieur IA &amp; Développeur Full-Stack</div>
         <div className="footer-r">Built with <span className="gc">React</span> + <span className="gc">Vite</span> ⚡</div>
       </footer>
     </>

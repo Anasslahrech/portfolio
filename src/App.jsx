@@ -36,7 +36,7 @@ function goTo(id) { document.getElementById(id)?.scrollIntoView({ behavior:"smoo
 // ✅ SEUL AJOUT — fonction manquante pour télécharger le CV
 function downloadCV() {
   const link = document.createElement('a')
-  link.href = '/cv.pdf'
+  link.href = '/LahrechAnassCV.pdf'
   link.download = 'CV_Anass_Lahrech.pdf'
   document.body.appendChild(link)
   link.click()

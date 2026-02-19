@@ -33,6 +33,16 @@ const STAGES = [
 
 function goTo(id) { document.getElementById(id)?.scrollIntoView({ behavior:"smooth" }) }
 
+// ✅ SEUL AJOUT — fonction manquante pour télécharger le CV
+function downloadCV() {
+  const link = document.createElement('a')
+  link.href = '/cv.pdf'
+  link.download = 'CV_Anass_Lahrech.pdf'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
 // Hook animation au scroll
 function useScrollAnim() {
   useEffect(() => {

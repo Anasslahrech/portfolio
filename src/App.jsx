@@ -1,83 +1,748 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
+import emailjs from "@emailjs/browser"
+import { NAV, TITLES, SKILLS, PROJECTS, PROJECT_FILTERS, STAGES, STATS, CONTACT_LINKS } from "./data"
 
-const NAV = ["Accueil", "À propos", "Compétences", "Projets", "Stages", "Contact"]
-const TITLES = ["Ingénieur IA", "Développeur Full-Stack", "Data Scientist", "Mobile Developer"]
+// ── EMAILJS CONFIG ─────────────────────────────────────────────────────────────
+const EMAILJS_SERVICE_ID  = "service_qhn7ofc"    // ← remplace par ton Service ID
+const EMAILJS_TEMPLATE_ID = "template_0kmuw6v"   // ← remplace par ton Template ID
+const EMAILJS_PUBLIC_KEY  = "seuknB9f3AJYg2LgF" // ← remplace par ta Public Key
 
-const SKILLS = [
-  { icon:"🤖", cat:"IA / Machine Learning", items:["Python","TensorFlow","Keras","PyTorch","Scikit-learn","NLP","CNN","Deep Learning"] },
-  { icon:"🎨", cat:"Web Frontend", items:["React.js","Vue.js","HTML5","CSS3","Bootstrap","JavaScript","TypeScript"] },
-  { icon:"⚙️", cat:"Web Backend", items:["Laravel","Django","Node.js","Express","Spring Boot","PHP","REST API","SOAP","RMI"] },
-  { icon:"📱", cat:"Mobile", items:["Android Java","Flutter","Dart"] },
-  { icon:"🗄️", cat:"Bases de données", items:["MySQL","MongoDB","PostgreSQL","Firebase","SQLite"] },
-  { icon:"🛠️", cat:"DevOps & Outils", items:["Git","GitHub","Docker","Postman","Linux","VS Code"] },
-  { icon:"📊", cat:"Data Science", items:["Pandas","NumPy","Matplotlib","Seaborn","Jupyter Notebook"] },
-  { icon:"💼", cat:"Bureautique & Design", items:["Word","Excel","PowerPoint","Canva"] },
-]
+// ── UTILS ──────────────────────────────────────────────────────────────────────
+function goTo(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })
+}
 
-const PROJECTS = [
-  { icon:"📝", title:"Gestion des Examens", tech:["Java","JSP/Servlet","MySQL"], desc:"Plateforme CRUD complète pour la gestion des étudiants, questions et examens universitaires.", video:"" },
-  { icon:"💪", title:"App Fitness & Nutrition", tech:["Android Java","SQLite","XML"], desc:"App mobile Android avec calcul de calories et programmes personnalisés selon l'objectif de chaque utilisateur.", video:"/videos/FITTRACK.mp4" },
-  { icon:"🏛️", title:"Réservation Salles & Amphi", tech:["Java","REST API","SOAP","RMI","MySQL"], desc:"Système de réservation multi-protocoles pour amphithéâtres et salles.", video:"" },
-  { icon:"🛒", title:"E-commerce Sportif", tech:["Django","Python","MySQL","Bootstrap"], desc:"Plateforme e-commerce complète pour produits sportifs avec gestion du catalogue et des commandes.", video:"" },
-  { icon:"💼", title:"Site d'Offres d'Emploi", tech:["Laravel","PHP","MySQL","Bootstrap"], desc:"Portail emploi avec espaces distincts Candidat / Recruteur, candidatures et gestion des offres.", video:"" },
-  { icon:"🗺️", title:"Suivi Livraisons Temps Réel", tech:["Node.js","Express","MongoDB","Socket.IO","Google Maps"], desc:"Système de tracking temps réel avec carte interactive et mise à jour de position.", video:"" },
-  { icon:"📋", title:"Gestionnaire de Contacts", tech:["Vue.js","Vue Router","Bootstrap","json-server"], desc:"Application CRUD de gestion de contacts avec navigation fluide et API simulée.", video:"" },
-  { icon:"📣", title:"Site Vitrine Marketing Digital", tech:["React.js","CSS3","Bootstrap"], desc:"Site vitrine professionnel pour agence de marketing digital, responsive et moderne.", video:"/videos/MarketingDigital.mp4" },
-  { icon:"🖥️", title:"Gestion Matériel IT", tech:["Laravel","PHP","MySQL","Bootstrap"], desc:"Système de gestion du parc informatique d'Asment Temara — suivi et affectation des équipements IT.", video:"" },
-]
-
-const STAGES = [
-  { icon:"🏭", company:"Asment Temara", role:"Développeur Web — Stage PFE", period:"Juil — Août 2024 · 2 mois", loc:"Ain Atiq, Maroc", desc:"Développement d'une application web de gestion du parc matériel IT. CRUD complet, gestion des utilisateurs et tableau de bord de suivi des équipements.", tech:["Laravel","PHP","MySQL","Bootstrap"] },
-  { icon:"🏛️", company:"Direction des Systèmes d'Information", role:"Stagiaire — Découverte Professionnelle", period:"2022 · 1 mois", loc:"Rabat Souissi, Maroc", desc:"Découverte d'une DSI publique, suivi du parc informatique, initiation aux infrastructures réseau et aux processus de gestion des systèmes d'information.", tech:["Systèmes d'information","Réseau","Parc IT"] },
-]
-
-function goTo(id) { document.getElementById(id)?.scrollIntoView({ behavior:"smooth" }) }
-
-// ✅ SEUL AJOUT — fonction manquante pour télécharger le CV
 function downloadCV() {
-  const link = document.createElement('a')
-  link.href = '/LahrechAnassCV.pdf'
-  link.download = 'CV_Anass_Lahrech.pdf'
+  const link = document.createElement("a")
+  link.href = "/LahrechAnassCV.pdf"
+  link.download = "CV_Anass_Lahrech.pdf"
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
 }
 
-// Hook animation au scroll
+// ── HOOKS ──────────────────────────────────────────────────────────────────────
 function useScrollAnim() {
   useEffect(() => {
     const els = document.querySelectorAll(
       ".anim-left, .anim-right, .anim-up, .anim-down, .anim-zoom, .anim-flip"
     )
-    const obs = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add("animated")
-          obs.unobserve(e.target)
-        }
-      })
-    }, { threshold: 0.12 })
-    els.forEach(el => obs.observe(el))
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("animated")
+            obs.unobserve(e.target)
+          }
+        })
+      },
+      { threshold: 0.12 }
+    )
+    els.forEach((el) => obs.observe(el))
     return () => obs.disconnect()
   }, [])
 }
 
-// ── VIDEO MODAL ─────────────────────────────────
+function useCountUp(target, duration = 1500, start = false) {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    if (!start) return
+    let startTime = null
+    const step = (timestamp) => {
+      if (!startTime) startTime = timestamp
+      const progress = Math.min((timestamp - startTime) / duration, 1)
+      const eased = 1 - Math.pow(1 - progress, 3)
+      setCount(Math.floor(eased * target))
+      if (progress < 1) requestAnimationFrame(step)
+    }
+    requestAnimationFrame(step)
+  }, [target, duration, start])
+  return count
+}
+
+// ── SCROLL PROGRESS ────────────────────────────────────────────────────────────
+function ScrollProgress() {
+  const [progress, setProgress] = useState(0)
+  useEffect(() => {
+    const fn = () => {
+      const scrollTop = window.scrollY
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight
+      setProgress(docHeight > 0 ? (scrollTop / docHeight) * 100 : 0)
+    }
+    window.addEventListener("scroll", fn, { passive: true })
+    return () => window.removeEventListener("scroll", fn)
+  }, [])
+  return (
+    <div
+      className="scroll-progress"
+      style={{ width: `${progress}%` }}
+      aria-hidden="true"
+    />
+  )
+}
+
+// ── NAVBAR ─────────────────────────────────────────────────────────────────────
+function Navbar({ active, menuOpen, setMenuOpen }) {
+  return (
+    <>
+      <nav className="nav" role="navigation" aria-label="Navigation principale">
+        <div
+          className="nav-logo"
+          onClick={() => goTo("Accueil")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === "Enter" && goTo("Accueil")}
+          aria-label="Retour à l'accueil"
+        >
+          Anass Lahrech<span className="nav-logo-dot gc">.</span>
+        </div>
+
+        <ul className="nav-links" role="list" style={{ listStyle: "none" }}>
+          {NAV.map((n) => (
+            <li key={n}>
+              <button
+                className={`nav-btn${active === n ? " active" : ""}`}
+                onClick={() => goTo(n)}
+                aria-current={active === n ? "page" : undefined}
+              >
+                {n}
+              </button>
+            </li>
+          ))}
+        </ul>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <a
+            href="#"
+            className="nav-cv-btn"
+            onClick={(e) => { e.preventDefault(); downloadCV() }}
+            aria-label="Télécharger mon CV en PDF"
+          >
+            📄 CV
+          </a>
+          <button className="nav-cta" onClick={() => goTo("Contact")}>
+            Contactez-moi
+          </button>
+          <button
+            className="hamburger"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label={menuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-expanded={menuOpen}
+          >
+            {menuOpen ? "✕" : "☰"}
+          </button>
+        </div>
+      </nav>
+
+      <div className={`mobile-menu${menuOpen ? " open" : ""}`} aria-hidden={!menuOpen}>
+        {NAV.map((n) => (
+          <button
+            key={n}
+            className="nav-btn"
+            onClick={() => { goTo(n); setMenuOpen(false) }}
+          >
+            {n}
+          </button>
+        ))}
+        <a
+          href="#"
+          className="nav-cv-btn mobile-cv"
+          onClick={(e) => { e.preventDefault(); downloadCV(); setMenuOpen(false) }}
+        >
+          📄 Télécharger CV
+        </a>
+      </div>
+    </>
+  )
+}
+
+// ── ANIMATED STAT ──────────────────────────────────────────────────────────────
+function AnimatedStat({ num, suffix, label }) {
+  const ref = useRef(null)
+  const [started, setStarted] = useState(false)
+  const count = useCountUp(num, 1400, started)
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setStarted(true); obs.disconnect() } },
+      { threshold: 0.5 }
+    )
+    if (ref.current) obs.observe(ref.current)
+    return () => obs.disconnect()
+  }, [])
+
+  return (
+    <div className="hero-stat" ref={ref}>
+      <div className="stat-num">
+        <em>{started ? count : 0}</em>{suffix}
+      </div>
+      <div className="stat-lbl">{label}</div>
+    </div>
+  )
+}
+
+// ── HERO SECTION ───────────────────────────────────────────────────────────────
+function HeroSection() {
+  const [typed, setTyped] = useState("")
+  const [tidx, setTidx] = useState(0)
+  const tiRef = useRef(null)
+
+  useEffect(() => {
+    let i = 0
+    const cur = TITLES[tidx]
+    clearInterval(tiRef.current)
+    tiRef.current = setInterval(() => {
+      i++
+      setTyped(cur.slice(0, i))
+      if (i >= cur.length) {
+        clearInterval(tiRef.current)
+        setTimeout(() => {
+          let d = cur.length
+          tiRef.current = setInterval(() => {
+            d--
+            setTyped(cur.slice(0, d))
+            if (d <= 0) {
+              clearInterval(tiRef.current)
+              setTidx((p) => (p + 1) % TITLES.length)
+            }
+          }, 40)
+        }, 2000)
+      }
+    }, 75)
+    return () => clearInterval(tiRef.current)
+  }, [tidx])
+
+  return (
+    <section id="Accueil" className="hero" aria-label="Accueil">
+      <div className="hero-glow1" aria-hidden="true" />
+      <div className="hero-glow2" aria-hidden="true" />
+      <div className="hero-dots"  aria-hidden="true" />
+
+      <div className="hero-inner">
+        <div className="hero-badge anim-down">
+          <span className="badge-dot" aria-hidden="true" />
+          Disponible pour stage PFE &amp; emploi
+        </div>
+
+        <h1 className="hero-name anim-zoom">
+          Anass<br />
+          <span className="hero-name-ghost">Lahrech</span>
+        </h1>
+
+        <div className="hero-typing anim-up">
+          {typed}
+          <span className="cursor-bar" aria-hidden="true" />
+        </div>
+
+        <p className="hero-desc anim-up delay-1">
+          Étudiant-ingénieur 4ème année · Option Intelligence Artificielle · ISMAGI
+          <br />
+          Titulaire d'une Licence en Développement Web &amp; Mobile (2025)
+        </p>
+
+        <div className="hero-btns anim-up delay-2">
+          <button className="btn-main" onClick={() => goTo("Projets")}>
+            Voir mes projets →
+          </button>
+          <button className="btn-outline" onClick={() => goTo("Contact")}>
+            Me contacter
+          </button>
+          <a
+            href="#"
+            className="btn-cv"
+            onClick={(e) => { e.preventDefault(); downloadCV() }}
+          >
+            📄 Télécharger CV
+          </a>
+        </div>
+
+        <div className="hero-stats anim-up delay-3">
+          {STATS.map((s) => (
+            <AnimatedStat key={s.label} {...s} />
+          ))}
+        </div>
+      </div>
+
+      <div className="hero-photo-wrap">
+        <div className="hero-photo-ring">
+          <img
+            src="/photo.jpg"
+            alt="Anass Lahrech"
+            className="hero-photo"
+            onError={(e) => { e.target.style.display = "none" }}
+          />
+        </div>
+        <div className="hero-photo-badge">🎓 Lauréat ISMAGI 2025</div>
+      </div>
+    </section>
+  )
+}
+
+// ── ABOUT SECTION ──────────────────────────────────────────────────────────────
+function AboutSection({ visible }) {
+  return (
+    <section
+      id="À propos"
+      className={`section alt-bg${visible["À propos"] ? " visible" : ""}`}
+      aria-label="À propos"
+    >
+      <div className="s-header anim-zoom">
+        <div className="s-eyebrow">01 — À propos</div>
+        <h2 className="s-title">Qui suis-je ?</h2>
+        <p className="s-sub">Ingénieur passionné par l'IA et le développement logiciel.</p>
+      </div>
+
+      <div className="about-grid">
+        <div className="anim-left">
+          <p className="about-p">
+            Je suis étudiant-ingénieur en 4ème année Génie Informatique, option{" "}
+            <em>Intelligence Artificielle</em> à l'ISMAGI. Titulaire d'une{" "}
+            <strong>Licence en Développement Web et Mobile</strong> obtenue en 2025.
+          </p>
+          <p className="about-p">
+            J'ai développé une expérience solide à travers <em>9 projets</em> couvrant le
+            développement full-stack, mobile, les APIs, la data science et l'IA — ainsi
+            que <em>2 stages</em> en entreprise dont un stage PFE chez Asment Temara.
+          </p>
+          <p className="about-p">
+            Rigoureux, autonome et passionné d'innovation, je cherche à mettre mes
+            compétences au service de challenges techniques à fort impact.
+          </p>
+
+          <div className="lang-section">
+            <div className="lang-title">Langues</div>
+            <div className="lang-pills">
+              {[
+                ["Arabe",   "Maternelle"],
+                ["Français","C1 — Courant"],
+                ["Anglais", "B1/B2"],
+              ].map(([n, l]) => (
+                <div key={n} className="lang-pill">
+                  <span className="lang-n">{n}</span>
+                  <span className="lang-l">{l}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="about-stats anim-right">
+          {[
+            ["9+",   "Projets réalisés"],
+            ["2",    "Stages effectués"],
+            ["15+",  "Technologies"],
+            ["4ème", "Année Cycle Ingénieur"],
+          ].map(([n, l]) => (
+            <div key={l} className="scard">
+              <div className="scard-n">{n}</div>
+              <div className="scard-l">{l}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// ── SKILLS SECTION ─────────────────────────────────────────────────────────────
+function SkillsSection({ visible }) {
+  return (
+    <section
+      id="Compétences"
+      className={`section${visible["Compétences"] ? " visible" : ""}`}
+      aria-label="Compétences"
+    >
+      <div className="s-header anim-zoom">
+        <div className="s-eyebrow">02 — Compétences</div>
+        <h2 className="s-title">Stack technique</h2>
+        <p className="s-sub">Technologies maîtrisées à travers projets et stages.</p>
+      </div>
+
+      <div className="skills-grid">
+        {SKILLS.map((sk, i) => (
+          <div key={sk.cat} className={`skill-card anim-up delay-${(i % 9) + 1}`}>
+            <div className="sk-icon">{sk.icon}</div>
+            <div className="sk-name">{sk.cat}</div>
+            <div className="sk-tags">
+              {sk.items.map((t) => (
+                <span key={t} className="sk-tag">{t}</span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+// ── PROJECTS SECTION ───────────────────────────────────────────────────────────
+function ProjectsSection({ visible, onVideoOpen }) {
+  const [activeFilter, setActiveFilter] = useState("Tous")
+  const filtered =
+    activeFilter === "Tous"
+      ? PROJECTS
+      : PROJECTS.filter((p) => p.tags?.includes(activeFilter))
+
+  return (
+    <section
+      id="Projets"
+      className={`section alt-bg${visible["Projets"] ? " visible" : ""}`}
+      aria-label="Projets"
+    >
+      <div className="s-header anim-zoom">
+        <div className="s-eyebrow">03 — Projets</div>
+        <h2 className="s-title">Ce que j'ai construit</h2>
+        <p className="s-sub">
+          J'ai réalisé plusieurs projets tout au long de ma formation — voici quelques-uns
+          qui illustrent mes compétences en web, mobile, IA et data science.
+        </p>
+      </div>
+
+      <div className="filter-bar" role="group" aria-label="Filtrer les projets">
+        {PROJECT_FILTERS.map((f) => (
+          <button
+            key={f}
+            className={`filter-btn${activeFilter === f ? " active" : ""}`}
+            onClick={() => setActiveFilter(f)}
+            aria-pressed={activeFilter === f}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      <div className="projects-grid" key={activeFilter}>
+        {filtered.length > 0 ? (
+          filtered.map((p, i) => (
+            <article
+              key={p.title}
+              className={`pcard pcard-enter anim-up delay-${(i % 9) + 1}`}
+            >
+              <div className="pcard-num">
+                Projet {String(PROJECTS.indexOf(p) + 1).padStart(2, "0")}
+              </div>
+              <div className="pcard-ico">{p.icon}</div>
+              <h3 className="pcard-title">{p.title}</h3>
+              <p className="pcard-desc">{p.desc}</p>
+              <div className="pcard-techs">
+                {p.tech.map((t) => (
+                  <span key={t} className="pcard-tech">{t}</span>
+                ))}
+              </div>
+              <button
+                className="pcard-demo-btn"
+                onClick={() => onVideoOpen(p)}
+                aria-label={`Voir la démo de ${p.title}`}
+              >
+                <span className="pcard-demo-icon" aria-hidden="true">▶</span>
+                Voir la démo
+              </button>
+            </article>
+          ))
+        ) : (
+          <div className="no-results">
+            <div className="no-results-icon">🔍</div>
+            <div className="no-results-text">Aucun projet pour ce filtre</div>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
+// ── STAGES SECTION ─────────────────────────────────────────────────────────────
+function StagesSection({ visible }) {
+  return (
+    <section
+      id="Stages"
+      className={`section${visible["Stages"] ? " visible" : ""}`}
+      aria-label="Stages"
+    >
+      <div className="s-header anim-zoom">
+        <div className="s-eyebrow">04 — Expériences</div>
+        <h2 className="s-title">Stages professionnels</h2>
+        <p className="s-sub">
+          Expériences en entreprise qui ont façonné mes compétences terrain.
+        </p>
+      </div>
+
+      <div className="timeline">
+        {STAGES.map((st, i) => (
+          <div
+            key={st.company}
+            className={`tl-item anim-${i % 2 === 0 ? "left" : "right"} delay-${i + 1}`}
+          >
+            <div className="tl-dot" aria-hidden="true" />
+            <div className="stg-card">
+              <div className="stg-top">
+                <div>
+                  <div className="stg-company">{st.company}</div>
+                  <div className="stg-role">{st.role}</div>
+                </div>
+                <div className="stg-meta">
+                  <span className="stg-period">{st.period}</span>
+                  <span className="stg-loc">📍 {st.loc}</span>
+                </div>
+              </div>
+              <p className="stg-desc">{st.desc}</p>
+              <div className="stg-tags">
+                {st.tech.map((t) => (
+                  <span key={t} className="stg-tag">{t}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+// ── CONTACT FORM avec EmailJS ──────────────────────────────────────────────────
+function ContactForm() {
+  const [form, setForm] = useState({ name: "", email: "", message: "" })
+  const [status, setStatus] = useState("idle") // idle | sending | success | error
+  const [errors, setErrors] = useState({})
+
+  const validate = () => {
+    const e = {}
+    if (!form.name.trim()) e.name = "Le nom est requis"
+    if (!form.email.trim()) e.email = "L'email est requis"
+    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = "Email invalide"
+    if (!form.message.trim()) e.message = "Le message est requis"
+    else if (form.message.trim().length < 10)
+      e.message = "Message trop court (min. 10 caractères)"
+    return e
+  }
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setForm((f) => ({ ...f, [name]: value }))
+    if (errors[name]) setErrors((er) => ({ ...er, [name]: "" }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const errs = validate()
+    if (Object.keys(errs).length > 0) { setErrors(errs); return }
+
+    setStatus("sending")
+    try {
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        {
+          from_name:  form.name,
+          from_email: form.email,
+          reply_to:   form.email,
+          to_email:   "anas.lahrech13@gmail.com",
+          message:    form.message,
+        },
+        EMAILJS_PUBLIC_KEY
+      )
+      setStatus("success")
+      setForm({ name: "", email: "", message: "" })
+      setTimeout(() => setStatus("idle"), 5000)
+    } catch (err) {
+      console.error("EmailJS error:", err)
+      setStatus("error")
+      setTimeout(() => setStatus("idle"), 5000)
+    }
+  }
+
+  if (status === "success") {
+    return (
+      <div className="form-success">
+        <div className="form-success-icon">✅</div>
+        <div className="form-success-title">Message envoyé !</div>
+        <div className="form-success-sub">Je vous répondrai dans les plus brefs délais.</div>
+      </div>
+    )
+  }
+
+  if (status === "error") {
+    return (
+      <div
+        className="form-success"
+        style={{ borderColor: "rgba(255,80,80,0.4)", background: "rgba(255,80,80,0.04)" }}
+      >
+        <div className="form-success-icon">❌</div>
+        <div className="form-success-title">Erreur d'envoi</div>
+        <div className="form-success-sub">
+          Vérifiez votre connexion ou contactez-moi directement à{" "}
+          <a href="mailto:anas.lahrech13@gmail.com" style={{ color: "var(--green)" }}>
+            anas.lahrech13@gmail.com
+          </a>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <form
+      className="contact-form anim-up delay-5"
+      onSubmit={handleSubmit}
+      noValidate
+      aria-label="Formulaire de contact"
+    >
+      <div className="form-row">
+        <div className="form-group">
+          <label className="form-label" htmlFor="name">Nom complet</label>
+          <input
+            id="name"
+            name="name"
+            type="text"
+            className={`form-input${errors.name ? " error" : ""}`}
+            placeholder="Votre nom"
+            value={form.name}
+            onChange={handleChange}
+            disabled={status === "sending"}
+            autoComplete="name"
+          />
+          {errors.name && (
+            <span className="form-error" role="alert">{errors.name}</span>
+          )}
+        </div>
+        <div className="form-group">
+          <label className="form-label" htmlFor="email">Email</label>
+          <input
+            id="email"
+            name="email"
+            type="email"
+            className={`form-input${errors.email ? " error" : ""}`}
+            placeholder="votre@email.com"
+            value={form.email}
+            onChange={handleChange}
+            disabled={status === "sending"}
+            autoComplete="email"
+          />
+          {errors.email && (
+            <span className="form-error" role="alert">{errors.email}</span>
+          )}
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label className="form-label" htmlFor="message">Message</label>
+        <textarea
+          id="message"
+          name="message"
+          className={`form-textarea${errors.message ? " error" : ""}`}
+          placeholder="Décrivez votre projet ou opportunité..."
+          value={form.message}
+          onChange={handleChange}
+          rows={5}
+          disabled={status === "sending"}
+        />
+        {errors.message && (
+          <span className="form-error" role="alert">{errors.message}</span>
+        )}
+      </div>
+
+      <button
+        type="submit"
+        className="form-submit"
+        disabled={status === "sending"}
+        aria-busy={status === "sending"}
+      >
+        {status === "sending" ? (
+          <>
+            <span className="form-spinner" aria-hidden="true" />
+            Envoi en cours...
+          </>
+        ) : (
+          "Envoyer le message →"
+        )}
+      </button>
+    </form>
+  )
+}
+
+// ── CONTACT SECTION ────────────────────────────────────────────────────────────
+function ContactSection({ visible }) {
+  return (
+    <section
+      id="Contact"
+      className={`section alt-bg${visible["Contact"] ? " visible" : ""}`}
+      aria-label="Contact"
+    >
+      <div className="s-header anim-zoom">
+        <div className="s-eyebrow">05 — Contact</div>
+        <h2 className="s-title">Travaillons ensemble</h2>
+        <p className="s-sub">
+          Disponible pour un stage PFE, une alternance ou un poste junior en IA / Full-Stack.
+        </p>
+      </div>
+
+      <div className="contact-grid">
+        {CONTACT_LINKS.map((c, i) => (
+          <a
+            key={c.lbl}
+            href={c.href}
+            target="_blank"
+            rel="noreferrer"
+            className={`ccard ${["anim-left", "anim-up", "anim-up", "anim-right"][i]} delay-${i + 1}`}
+            aria-label={`${c.lbl}: ${c.val}`}
+          >
+            <span className="ccard-ico" aria-hidden="true">{c.ico}</span>
+            <span className="ccard-lbl">{c.lbl}</span>
+            <span className="ccard-val">{c.val}</span>
+            <span className="ccard-arr" aria-hidden="true">↗</span>
+          </a>
+        ))}
+      </div>
+
+      <ContactForm />
+
+      <div className="cv-download-card anim-up delay-6">
+        <div className="cv-card-left">
+          <div className="cv-card-icon" aria-hidden="true">📄</div>
+          <div>
+            <div className="cv-card-title">Mon CV complet</div>
+            <div className="cv-card-sub">
+              Lahrech Anass — Ingénieur IA &amp; Développeur Full-Stack · PDF
+            </div>
+          </div>
+        </div>
+        <a
+          className="cv-dl-btn"
+          href="#"
+          onClick={(e) => { e.preventDefault(); downloadCV() }}
+          aria-label="Télécharger le CV en PDF"
+        >
+          ⬇ Télécharger le CV
+        </a>
+      </div>
+    </section>
+  )
+}
+
+// ── VIDEO MODAL ────────────────────────────────────────────────────────────────
 function VideoModal({ project, onClose }) {
+  useEffect(() => {
+    if (!project) return
+    const onKey = (e) => { if (e.key === "Escape") onClose() }
+    document.addEventListener("keydown", onKey)
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.removeEventListener("keydown", onKey)
+      document.body.style.overflow = ""
+    }
+  }, [project, onClose])
+
   if (!project) return null
 
-  // Convert YouTube URL to embed
   const getEmbedUrl = (url) => {
     if (!url) return null
-    if (url.includes('youtube.com/watch')) {
-      const id = url.split('v=')[1]?.split('&')[0]
+    if (url.includes("youtube.com/watch")) {
+      const id = url.split("v=")[1]?.split("&")[0]
       return `https://www.youtube.com/embed/${id}?autoplay=1`
     }
-    if (url.includes('youtu.be/')) {
-      const id = url.split('youtu.be/')[1]?.split('?')[0]
+    if (url.includes("youtu.be/")) {
+      const id = url.split("youtu.be/")[1]?.split("?")[0]
       return `https://www.youtube.com/embed/${id}?autoplay=1`
     }
-    if (url.includes('drive.google.com')) {
+    if (url.includes("drive.google.com")) {
       const id = url.match(/[-\w]{25,}/)?.[0]
       return `https://drive.google.com/file/d/${id}/preview`
     }
@@ -85,21 +750,34 @@ function VideoModal({ project, onClose }) {
   }
 
   const embedUrl = getEmbedUrl(project.video)
-  const isLocal = project.video && (project.video.endsWith('.mp4') || project.video.endsWith('.webm') || project.video.endsWith('.mov'))
+  const isLocal = project.video && /\.(mp4|webm|mov)$/i.test(project.video)
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" onClick={e => e.stopPropagation()}>
+    <div
+      className="modal-overlay"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Démo de ${project.title}`}
+    >
+      <div className="modal-box" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <div className="modal-title-wrap">
-            <span className="modal-icon">{project.icon}</span>
+            <span className="modal-icon" aria-hidden="true">{project.icon}</span>
             <div>
               <div className="modal-title">{project.title}</div>
               <div className="modal-sub">Démonstration du projet</div>
             </div>
           </div>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button
+            className="modal-close"
+            onClick={onClose}
+            aria-label="Fermer la modale"
+          >
+            ✕
+          </button>
         </div>
+
         <div className="modal-video-wrap">
           {isLocal ? (
             <video
@@ -119,20 +797,20 @@ function VideoModal({ project, onClose }) {
             />
           ) : (
             <div className="modal-no-video">
-              <div className="modal-no-video-icon">🎬</div>
+              <div className="modal-no-video-icon" aria-hidden="true">🎬</div>
               <div className="modal-no-video-title">Vidéo bientôt disponible</div>
               <div className="modal-no-video-sub">
                 La démonstration de <strong>{project.title}</strong> sera ajoutée prochainement.
               </div>
-              <div className="modal-no-video-tip">
-                Pour ajouter une vidéo, mettez le lien YouTube ou Google Drive dans le champ <code>video</code> du projet.
-              </div>
             </div>
           )}
         </div>
+
         <div className="modal-footer">
           <div className="modal-techs">
-            {project.tech.map(t => <span key={t} className="modal-tech">{t}</span>)}
+            {project.tech.map((t) => (
+              <span key={t} className="modal-tech">{t}</span>
+            ))}
           </div>
           <button className="modal-close-btn" onClick={onClose}>Fermer</button>
         </div>
@@ -141,291 +819,76 @@ function VideoModal({ project, onClose }) {
   )
 }
 
+// ── APP ────────────────────────────────────────────────────────────────────────
 export default function App() {
-  const [active, setActive]   = useState("Accueil")
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [typed, setTyped]     = useState("")
-  const [tidx, setTidx]       = useState(0)
-  const [visible, setVisible] = useState({})
+  const [active, setActive]           = useState("Accueil")
+  const [menuOpen, setMenuOpen]       = useState(false)
+  const [visible, setVisible]         = useState({})
   const [activeVideo, setActiveVideo] = useState(null)
-  const tiRef = useRef(null)
 
-  // Typing
+  // Section visibility for fade-in
   useEffect(() => {
-    let i = 0; const cur = TITLES[tidx]
-    clearInterval(tiRef.current)
-    tiRef.current = setInterval(() => {
-      i++; setTyped(cur.slice(0,i))
-      if(i >= cur.length) {
-        clearInterval(tiRef.current)
-        setTimeout(() => {
-          let d = cur.length
-          tiRef.current = setInterval(() => {
-            d--; setTyped(cur.slice(0,d))
-            if(d <= 0) { clearInterval(tiRef.current); setTidx(p => (p+1)%TITLES.length) }
-          }, 40)
-        }, 2000)
-      }
-    }, 75)
-    return () => clearInterval(tiRef.current)
-  }, [tidx])
-
-  // Section visible (pour .section)
-  useEffect(() => {
-    const obs = new IntersectionObserver(entries => {
-      entries.forEach(e => { if(e.isIntersecting) setVisible(v => ({...v,[e.target.id]:true})) })
-    }, { threshold:0.08 })
-    NAV.forEach(id => { const el = document.getElementById(id); if(el) obs.observe(el) })
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting)
+            setVisible((v) => ({ ...v, [e.target.id]: true }))
+        })
+      },
+      { threshold: 0.08 }
+    )
+    NAV.forEach((id) => {
+      const el = document.getElementById(id)
+      if (el) obs.observe(el)
+    })
     return () => obs.disconnect()
   }, [])
 
-  // Active nav
+  // Active nav link tracking on scroll
   useEffect(() => {
-    const fn = () => NAV.forEach(id => {
-      const el = document.getElementById(id)
-      if(el){ const r=el.getBoundingClientRect(); if(r.top<=80&&r.bottom>=80) setActive(id) }
-    })
-    window.addEventListener("scroll", fn)
+    const fn = () => {
+      NAV.forEach((id) => {
+        const el = document.getElementById(id)
+        if (el) {
+          const r = el.getBoundingClientRect()
+          if (r.top <= 80 && r.bottom >= 80) setActive(id)
+        }
+      })
+    }
+    window.addEventListener("scroll", fn, { passive: true })
     return () => window.removeEventListener("scroll", fn)
   }, [])
 
-  // Scroll animations
+  // Close mobile menu on resize
+  useEffect(() => {
+    const fn = () => { if (window.innerWidth > 900) setMenuOpen(false) }
+    window.addEventListener("resize", fn)
+    return () => window.removeEventListener("resize", fn)
+  }, [])
+
   useScrollAnim()
+
+  const handleVideoOpen  = useCallback((p) => setActiveVideo(p), [])
+  const handleVideoClose = useCallback(() => setActiveVideo(null), [])
 
   return (
     <>
-      {/* NAV */}
-      <nav className="nav">
-        <div className="nav-logo" onClick={() => goTo("Accueil")}>
-          <span className="nav-logo-name">Anass Lahrech</span>
-          <span className="nav-logo-dot">.</span>
-        </div>
-        <div className="nav-links">
-          {NAV.map(n => (
-            <button key={n} className={`nav-btn${active===n?" active":""}`}
-              onClick={() => { goTo(n); setActive(n) }}>{n}</button>
-          ))}
-        </div>
-        <a className="nav-cv-btn" href="#" onClick={(e) => { e.preventDefault(); downloadCV(); }}>📄 CV</a>
-        <button className="nav-cta" onClick={() => goTo("Contact")}>Contactez-moi</button>
-        <button className="hamburger" onClick={() => setMenuOpen(!menuOpen)}>
-          {menuOpen?"✕":"☰"}
-        </button>
-      </nav>
-
-      <div className={`mobile-menu${menuOpen?" open":""}`}>
-        {NAV.map(n => (
-          <button key={n} className={`nav-btn${active===n?" active":""}`}
-            onClick={() => { goTo(n); setActive(n); setMenuOpen(false) }}>{n}</button>
-        ))}
-      </div>
-
-      {/* ── HERO ─────────────────────────────────── */}
-      <section id="Accueil" className="hero">
-        <div className="hero-glow1"/><div className="hero-glow2"/><div className="hero-dots"/>
-        <div className="hero-inner">
-          {/* badge glisse depuis le haut */}
-          <div className="hero-badge anim-down">
-            <span className="badge-dot"/>
-            Disponible pour stage PFE &amp; emploi
-          </div>
-          {/* nom glisse depuis la gauche */}
-          <h1 className="hero-name anim-left">
-            Anass <span className="hero-name-ghost">Lahrech</span>
-          </h1>
-          {/* typing glisse depuis la gauche avec délai */}
-          <div className="hero-typing anim-left delay-2">
-            {typed}<span className="cursor-bar"/>
-          </div>
-          {/* desc zoom */}
-          <p className="hero-desc anim-zoom delay-3">
-            Étudiant-ingénieur 4ème année · Option Intelligence Artificielle · ISMAGI<br/>
-            Titulaire d&apos;une Licence en Développement Web &amp; Mobile (2025)
-          </p>
-          {/* boutons depuis le bas */}
-          <div className="hero-btns anim-up delay-4">
-            <button className="btn-main" onClick={() => goTo("Projets")}>Voir mes projets →</button>
-            <button className="btn-outline" onClick={() => goTo("Contact")}>Me contacter</button>
-            <a className="btn-cv" href="#" onClick={(e) => { e.preventDefault(); downloadCV(); }}>📄 Télécharger CV</a>
-          </div>
-          {/* stats depuis le bas */}
-          <div className="hero-stats anim-up delay-5">
-            <div><div className="stat-num">9<em>+</em></div><div className="stat-lbl">Projets réalisés</div></div>
-            <div><div className="stat-num">2</div><div className="stat-lbl">Stages effectués</div></div>
-            <div><div className="stat-num">15<em>+</em></div><div className="stat-lbl">Technologies</div></div>
-            <div><div className="stat-num">4<em>ème</em></div><div className="stat-lbl">Année Ingénieur</div></div>
-          </div>
-        </div>
-
-        {/* photo glisse depuis la droite */}
-        <div className="hero-photo-wrap anim-right">
-          <div className="hero-photo-ring">
-            <img src="/photo.jpg" alt="Anass Lahrech diplome" className="hero-photo"/>
-          </div>
-          <div className="hero-photo-badge">🎓 Lauréat ISMAGI 2025</div>
-        </div>
-      </section>
-
-      {/* ── ABOUT ────────────────────────────────── */}
-      <section id="À propos" className={`section${visible["À propos"]?" visible":""}`}>
-        {/* header glisse depuis la gauche */}
-        <div className="s-header anim-left">
-          <div className="s-eyebrow">01 — À propos</div>
-          <h2 className="s-title">Qui suis-je ?</h2>
-          <p className="s-sub">Ingénieur passionné par l&apos;IA et le développement logiciel.</p>
-        </div>
-        <div className="about-grid">
-          {/* texte depuis la gauche */}
-          <div className="anim-left delay-1">
-            <p className="about-p">Je suis étudiant-ingénieur en <strong>4ème année Génie Informatique</strong>, option <em>Intelligence Artificielle</em> à l&apos;<strong>ISMAGI</strong>. Titulaire d&apos;une <strong>Licence en Développement Web et Mobile</strong> obtenue en 2025.</p>
-            <p className="about-p">J&apos;ai développé une expérience solide à travers <em>9 projets</em> couvrant le développement full-stack, mobile, les APIs, la data science et l&apos;IA — ainsi que <em>2 stages</em> en entreprise dont un stage PFE chez <strong>Asment Temara</strong>.</p>
-            <p className="about-p">Rigoureux, autonome et passionné d&apos;innovation, je cherche à mettre mes compétences au service de challenges techniques à fort impact.</p>
-            <div className="lang-section">
-              <div className="lang-title">Langues</div>
-              <div className="lang-pills">
-                {[["Arabe","Maternelle"],["Français","C1 — Courant"],["Anglais","B1/B2"]].map(([n,l]) => (
-                  <div key={n} className="lang-pill"><span className="lang-n">{n}</span><span className="lang-l">{l}</span></div>
-                ))}
-              </div>
-            </div>
-          </div>
-          {/* stats depuis la droite */}
-          <div className="about-stats anim-right delay-2">
-            {[["9+","Projets réalisés"],["2","Stages effectués"],["15+","Technologies"],["4ème","Année Cycle Ingénieur"]].map(([n,l],i) => (
-              <div key={l} className={`scard anim-zoom delay-${i+2}`}>
-                <div className="scard-n">{n}</div>
-                <div className="scard-l">{l}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── SKILLS ───────────────────────────────── */}
-      <section id="Compétences" className={`section alt-bg${visible["Compétences"]?" visible":""}`}>
-        {/* header depuis la droite */}
-        <div className="s-header anim-right">
-          <div className="s-eyebrow">02 — Compétences</div>
-          <h2 className="s-title">Stack technique</h2>
-          <p className="s-sub">Technologies maîtrisées à travers projets et stages.</p>
-        </div>
-        <div className="skills-grid">
-          {SKILLS.map((sk, i) => (
-            // alternance gauche / droite / zoom selon l'index
-            <div key={sk.cat}
-              className={`skill-card ${i%3===0?"anim-left":i%3===1?"anim-up":"anim-right"} delay-${(i%4)+1}`}>
-              <div className="sk-icon">{sk.icon}</div>
-              <div className="sk-name">{sk.cat}</div>
-              <div className="sk-tags">{sk.items.map(t => <span key={t} className="sk-tag">{t}</span>)}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── PROJECTS ─────────────────────────────── */}
-      <section id="Projets" className={`section${visible["Projets"]?" visible":""}`}>
-        {/* header depuis la gauche */}
-        <div className="s-header anim-left">
-          <div className="s-eyebrow">03 — Projets</div>
-          <h2 className="s-title">Ce que j&apos;ai construit</h2>
-          <p className="s-sub">J&apos;ai réalisé plusieurs projets tout au long de ma formation — voici quelques-uns qui illustrent mes compétences en web, mobile, IA et data science.</p>
-        </div>
-        <div className="projects-grid">
-          {PROJECTS.map((p,i) => (
-            <div key={p.title}
-              className={`pcard ${i<3?"anim-flip":i%2===0?"anim-left":"anim-right"} delay-${(i%5)+1}`}>
-              <div className="pcard-num">Projet {String(i+1).padStart(2,"0")}</div>
-              <div className="pcard-ico">{p.icon}</div>
-              <div className="pcard-title">{p.title}</div>
-              <div className="pcard-desc">{p.desc}</div>
-              <div className="pcard-techs">{p.tech.map(t => <span key={t} className="pcard-tech">{t}</span>)}</div>
-              <button className="pcard-demo-btn" onClick={() => setActiveVideo(p)}>
-                <span className="pcard-demo-icon">▶</span> Voir la démo
-              </button>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── STAGES ───────────────────────────────── */}
-      <section id="Stages" className={`section alt-bg${visible["Stages"]?" visible":""}`}>
-        {/* header depuis la droite */}
-        <div className="s-header anim-right">
-          <div className="s-eyebrow">04 — Expériences</div>
-          <h2 className="s-title">Stages professionnels</h2>
-          <p className="s-sub">Expériences en entreprise qui ont façonné mes compétences terrain.</p>
-        </div>
-        <div className="timeline">
-          {STAGES.map((st,i) => (
-            // alternance gauche / droite
-            <div key={st.company} className={`tl-item ${i%2===0?"anim-left":"anim-right"} delay-${i+1}`}>
-              <div className="tl-dot"/>
-              <div className="stg-card">
-                <div className="stg-top">
-                  <div>
-                    <div className="stg-company">{st.company}</div>
-                    <div className="stg-role">{st.role}</div>
-                  </div>
-                  <div className="stg-meta">
-                    <span className="stg-period">{st.period}</span>
-                    <span className="stg-loc">📍 {st.loc}</span>
-                  </div>
-                </div>
-                <p className="stg-desc">{st.desc}</p>
-                <div className="stg-tags">{st.tech.map(t => <span key={t} className="stg-tag">{t}</span>)}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── CONTACT ──────────────────────────────── */}
-      <section id="Contact" className={`section${visible["Contact"]?" visible":""}`}>
-        {/* header zoom */}
-        <div className="s-header anim-zoom">
-          <div className="s-eyebrow">05 — Contact</div>
-          <h2 className="s-title">Travaillons ensemble</h2>
-          <p className="s-sub">Disponible pour un stage PFE, une alternance ou un poste junior en IA / Full-Stack.</p>
-        </div>
-        <div className="contact-grid">
-          {[
-            {ico:"📧",lbl:"Email",val:"anas.lahrech13@gmail.com",href:"mailto:anas.lahrech13@gmail.com"},
-            {ico:"📞",lbl:"Téléphone",val:"06 02 74 77 60",href:"tel:0602747760"},
-            {ico:"💼",lbl:"LinkedIn",val:"anass-lahrech",href:"https://www.linkedin.com/in/anass-lahrech-ab873b271/"},
-            {ico:"🐙",lbl:"GitHub",val:"Anasslahrech",href:"https://github.com/Anasslahrech"},
-          ].map((c,i) => (
-            // chaque carte contact depuis une direction différente
-            <a key={c.lbl} href={c.href} target="_blank" rel="noreferrer"
-              className={`ccard ${["anim-left","anim-up","anim-up","anim-right"][i]} delay-${i+1}`}>
-              <span className="ccard-ico">{c.ico}</span>
-              <span className="ccard-lbl">{c.lbl}</span>
-              <span className="ccard-val">{c.val}</span>
-              <span className="ccard-arr">↗</span>
-            </a>
-          ))}
-        </div>
-
-        {/* CV DOWNLOAD */}
-        <div className="cv-download-card anim-up delay-5">
-          <div className="cv-card-left">
-            <div className="cv-card-icon">📄</div>
-            <div>
-              <div className="cv-card-title">Mon CV complet</div>
-              <div className="cv-card-sub">Lahrech Anass — Ingénieur IA &amp; Développeur Full-Stack · PDF</div>
-            </div>
-          </div>
-          <a className="cv-dl-btn" href="#" onClick={(e) => { e.preventDefault(); downloadCV(); }}>⬇ Télécharger le CV</a>
-        </div>
-
-      </section>
-
-      {/* VIDEO MODAL */}
-      <VideoModal project={activeVideo} onClose={() => setActiveVideo(null)} />
-
-      {/* FOOTER */}
+      <ScrollProgress />
+      <Navbar active={active} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
+      <main>
+        <HeroSection />
+        <AboutSection    visible={visible} />
+        <SkillsSection   visible={visible} />
+        <ProjectsSection visible={visible} onVideoOpen={handleVideoOpen} />
+        <StagesSection   visible={visible} />
+        <ContactSection  visible={visible} />
+      </main>
+      <VideoModal project={activeVideo} onClose={handleVideoClose} />
       <footer className="footer">
-        <div className="footer-l">© 2025 <strong>Anass Lahrech</strong> — Ingénieur IA &amp; Développeur Full-Stack</div>
-        <div className="footer-r">Built with <span className="gc">React</span> + <span className="gc">Vite</span> ⚡</div>
+        <div className="footer-l">
+          © 2025 <strong>Anass Lahrech</strong> — Ingénieur IA &amp; Développeur Full-Stack
+        </div>
+        
       </footer>
     </>
   )

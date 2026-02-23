@@ -14,7 +14,7 @@ export const SKILLS = [
 ]
 
 export const PROJECTS = [
-  { icon:"📝", title:"Gestion des Examens", tech:["Java","JSP/Servlet","MySQL"], tags:["Web","Java"], desc:"Plateforme CRUD complète pour la gestion des étudiants, questions et examens universitaires.", video:"" },
+  { icon:"📝", title:"Gestion des Examens", tech:["Java","JSP/Servlet","MySQL"], tags:["Web","Java"], desc:"Plateforme CRUD complète pour la gestion des étudiants, questions et examens universitaires.", video:"/videos/javaQuiz.mp4" },
   { icon:"💪", title:"App Fitness & Nutrition", tech:["Android Java","SQLite","XML"], tags:["Mobile"], desc:"App mobile Android avec calcul de calories et programmes personnalisés selon l'objectif de chaque utilisateur.", video:"/videos/FITTRACK.mp4" },
   { icon:"🏛️", title:"Réservation Salles & Amphi", tech:["Java","REST API","SOAP","RMI","MySQL"], tags:["Web","Java"], desc:"Système de réservation multi-protocoles pour amphithéâtres et salles.", video:"" },
   { icon:"🛒", title:"E-commerce Sportif", tech:["Django","Python","MySQL","Bootstrap"], tags:["Web","Python"], desc:"Plateforme e-commerce complète pour produits sportifs avec gestion du catalogue et des commandes.", video:"" },
